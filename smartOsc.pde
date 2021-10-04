@@ -4,28 +4,31 @@ import controlP5.*;
 OscP5 oscP5;
 NetAddress ipRemoto;
 ControlP5 cp5;
-float m1, m2, m3, m4;
+
 String m, canalOut, currentHost;
 int cantidadDeCanales = 8;
-String canalIn0, canalIn1, canalIn2, canalIn3;
-int saturacion0, saturacion1, saturacion2, saturacion3;
+float m1, m2, m3, m4, m5, m6, m7, m8;
+String canalIn0, canalIn1, canalIn2, canalIn3, canalIn4, canalIn5, canalIn6, canalIn7;
+int slider0, slider1, slider2, slider3, slider4, slider5, slider6, slider7;
 boolean RECEIVE0, RECEIVE1, RECEIVE2, RECEIVE3, RECEIVE4, RECEIVE5, RECEIVE6, RECEIVE7;
-boolean SEND0, SEND1, SEND2, SEND3;
-Chart grafico0, grafico1, grafico2, grafico3;
-Chart graficoOut0, graficoOut1, graficoOut2, graficoOut3;
+boolean SEND0, SEND1, SEND2, SEND3, SEND4, SEND5, SEND6, SEND7;
+Chart grafico0, grafico1, grafico2, grafico3, grafico4, grafico5, grafico6, grafico7;
+Chart graficoOut0, graficoOut1, graficoOut2, graficoOut3, graficoOut4, graficoOut5, graficoOut6, graficoOut7;
 Router router;
 public void settings() {
   size(displayWidth/2, displayHeight-100);
 }
 public void setup() {
-  saturacion0 = 1;
-  saturacion1 = 1;
-  saturacion2 = 1;
-  saturacion3 = 1;
-
-  background(0);
+  slider0 = 1;
+  slider1 = 1;
+  slider2 = 1;
+  slider3 = 1;
+  slider4 = 1;
+  slider5 = 1;
+  slider6 = 1;
+  slider7 = 1;
   cp5 = new ControlP5(this);
-  frameRate(6);
+  frameRate(120);
   try {
     println(java.net.InetAddress.getLocalHost().getHostAddress());
     currentHost = java.net.InetAddress.getLocalHost().getHostAddress();
@@ -41,4 +44,5 @@ public void setup() {
 }
 void draw() {
   router.actualizar();
+  Runtime.getRuntime().runFinalization();
 }
