@@ -1,5 +1,7 @@
 class Router {
+  boolean verMenu;
   int toMB = 1024 * 1024;
+  float currentMouseX, currentMouseY;
   int [] graphColor;
   float [] exp;
   float [] slider;
@@ -17,14 +19,6 @@ class Router {
     this.graficoOut = new Chart[cantidadDeCanales];
     this.result =  new float[cantidadDeCanales];
     this.valor =  new float[cantidadDeCanales];
-    canalIn0 = "/wimumo001/emg/ch1";
-    canalIn1 = "/wimumo001/emg/ch2";
-    canalIn2 = "/wimumo001/emg/ch3";
-    canalIn3 = "/wimumo001/emg/ch4";
-    canalIn0 = "/wimumo001/emg/ch5";
-    canalIn1 = "/wimumo001/emg/ch6";
-    canalIn2 = "/wimumo001/emg/ch7";
-    canalIn3 = "/wimumo001/emg/ch8";
     this.grafico[0] = grafico0;
     this.grafico[1] = grafico1;
     this.grafico[2] = grafico2;
@@ -43,7 +37,7 @@ class Router {
     this.graficoOut[7] = graficoOut7;
     for (int i = 0; i < cantidadDeCanales; i++) {
       this.valor[i] = 0;
-      this.result[i] = 0;
+      this.result[i] = 0.5;
       this.slider[i] = 0;
       campoDeTexto(i);
       sliders(i);
@@ -54,17 +48,21 @@ class Router {
     }
   }
   void actualizar() {
-    background(0);
-
+    
     for (int i = 0; i < cantidadDeCanales; i++) {
       modulosOSC(i);
-      this.exp[i] = pow(this.slider[i], 18);
-      this.result[i] = (this.valor[i] /  this.exp[i]);
-
+      if (this.valor[i] /  this.slider[i] > 0) {
+        this.result[i] = (this.valor[i] /  this.slider[i]);
+      } else {
+        this.result[i] = 0;
+      }
+      this.result[i] = map( this.result[i], 0, 5000, 0, 1);
+      if (this.result[i] > 1) {
+        this.result[i] = 1;
+      }
       this.grafico[i].push(this.valor[i]);
       this.graficoOut[i].push(this.result[i]);
     }
-
     this.slider[0] = slider0;
     this.slider[1] = slider1;
     this.slider[2] = slider2;
@@ -73,30 +71,33 @@ class Router {
     this.slider[5] = slider5;
     this.slider[6] = slider6;
     this.slider[7] = slider7;
-
     if (SEND0 == false) {
       this.result[0] = 0;
-    } else if (SEND1 == false) {
+    }  
+    if (SEND1 == false) {
       this.result[1] = 0;
-    } else if (SEND2 == false) {
+    }  
+    if (SEND2 == false) {
       this.result[2] = 0;
-    } else if (SEND3 == false) {
+    }  
+    if (SEND3 == false) {
       this.result[3] = 0;
-    } else if (SEND4 == false) {
+    }  
+    if (SEND4 == false) {
       this.result[4] = 0;
-    } else if (SEND5 == false) {
+    }  
+    if (SEND5 == false) {
       this.result[5] = 0;
-    } else if (SEND6 == false) {
+    }  
+    if (SEND6 == false) {
       this.result[6] = 0;
-    } else if (SEND7 == false) {
+    }  
+    if (SEND7 == false) {
       this.result[7] = 0;
     }
-
-
     OscMessage myMessage = new OscMessage(canalOut);
-    String m = this.result[0]+"/"+this.result[1]+"/"+this.result[2]+"/"+this.result[3];
+    String m = this.result[0]+"/"+this.result[1]+"/"+this.result[2]+"/"+this.result[3] + "/" + this.result[4]+"/"+this.result[5]+"/"+this.result[6]+"/"+this.result[7];
     myMessage.add(m);
-
     if (
       RECEIVE0 == true && SEND0 == true ||
       RECEIVE1 == true && SEND1 == true ||
@@ -108,50 +109,49 @@ class Router {
       RECEIVE7 == true && SEND7 == true ) 
     {
       oscP5.send(myMessage, ipRemoto);
-      if (mousePressed) {
-        fill(0, 255, 0);
-        text("This host: "+currentHost+":12000", mouseX, mouseY);
-        text("Sending to: "+ipRemoto+canalOut, mouseX, mouseY+20);
-        text("MB usados: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / this.toMB, mouseX, mouseY+40);
-        text("MB libres: " + Runtime.getRuntime().freeMemory() / this.toMB, mouseX, mouseY+60);
-      } else {
-        fill(255);
-      }
+      mouseDetector();
+    }
+  }
+  void mouseDetector() {
+    if (mousePressed) {
+      fill(0, 255, 0);
+      text("This host: "+currentHost+":12000", mouseX, mouseY);
+      text("Sending to: "+ipRemoto+canalOut, mouseX, mouseY+20);
+      text("MB usados: " + (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()) / this.toMB, mouseX, mouseY+40);
+      text("MB libres: " + Runtime.getRuntime().freeMemory() / this.toMB, mouseX, mouseY+60);
+    } else {
+      fill(255);
     }
   }
   void graficos(int canal) {
-
     this.grafico[canal] = cp5.addChart("grafico"+canal)
-      .setPosition(width/5, height/cantidadDeCanales*canal+height/12)
+      .setPosition(width/5, height/cantidadDeCanales*canal)
       .setSize(50, 50)
-      .setRange(0, 100000)
+      .setRange(0, 5000)
       .setView(Chart.LINE)
       .setStrokeWeight(1.5)
       .setColorCaptionLabel(color(255));
-
     this.grafico[canal].addDataSet("grafico"+canal);
     this.grafico[canal].setData("grafico"+canal, new float[360]);
   }
   void graficosOut(int canal) {
-
     this.graficoOut[canal] = cp5.addChart("graficoOut"+canal)
-      .setPosition(width-width/5, height/cantidadDeCanales*canal+height/12)
+      .setPosition(width-width/5, height/cantidadDeCanales*canal)
       .setSize(50, 50)
       .setRange(0, 1)
       .setView(Chart.LINE)
       .setStrokeWeight(1.5)
       .setColorCaptionLabel(color(255)); 
-
     this.graficoOut[canal].addDataSet("graficoOut"+canal);
     this.graficoOut[canal].setData("graficoOut"+canal, new float[360]);
   }
   void modulosOSC(int canal) {
     pushMatrix();
     stroke(255);
-    text("Recibido: ", width/9, height/cantidadDeCanales*canal+height/10);
-    text(valor[canal], width/9, height/cantidadDeCanales*canal+height/8);
-    text("Enviado: ", width-width/3.5, height/cantidadDeCanales*canal+height/10);
-    text(result[canal], width-width/3.5, height/cantidadDeCanales*canal+height/7);
+    text("Recibido: ", width/9, height/cantidadDeCanales*canal+20);
+    text(valor[canal], width/9, height/cantidadDeCanales*canal+40);
+    text("Enviado: ", width-width/3.5, height/cantidadDeCanales*canal+20);
+    text(result[canal], width-width/3.5, height/cantidadDeCanales*canal+40);
     if (valor[canal] >= 0.1) {
       fill(0, 255, 0, 255);
       square(width/6, height/cantidadDeCanales*canal+height/7, 5);
@@ -162,7 +162,7 @@ class Router {
     cp5.addSlider("slider"+canal)
       .setPosition(width/3, height/cantidadDeCanales*canal+height/48)
       .setSize(width/3, 10)
-      .setRange(0.000001, 2)
+      .setRange(1, 100)
       ;
   }
   void sliderInput(int canal) {
